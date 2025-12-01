@@ -8,14 +8,14 @@ const { readFileSync } = require('fs')
 const { join } = require('path')
 const { execSync } = require('child_process')
 
-// Read .env.local file
-const envPath = join(process.cwd(), '.env.local')
+// Read .env.local file from project root
+const envPath = join(__dirname, '..', '.env.local')
 let envContent = ''
 
 try {
   envContent = readFileSync(envPath, 'utf-8')
 } catch (err) {
-  console.error('Error reading .env.local:', err.message)
+  console.error('Error reading .env.local from project root:', err.message)
   process.exit(1)
 }
 
@@ -37,14 +37,14 @@ if (!token) {
 
 // Set npm token and publish
 try {
-  console.log('🔐 Setting npm authentication token...')
+  console.log('Setting npm authentication token...')
   execSync(`npm config set //registry.npmjs.org/:_authToken ${token}`, { stdio: 'inherit' })
   
-  console.log('📦 Publishing package to npm...')
-  execSync('npm publish --access public', { stdio: 'inherit' })
+  console.log('Publishing package to npm...')
+  execSync('npm publish --access public', { stdio: 'inherit', cwd: join(__dirname, '..') })
   
-  console.log('✅ Package published successfully!')
+  console.log('Package published successfully!')
 } catch (err) {
-  console.error('❌ Error publishing:', err.message)
+  console.error('Error publishing:', err.message)
   process.exit(1)
 }
