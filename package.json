@@ -1,0 +1,80 @@
+{
+  "name": "worlds-engine",
+  "version": "0.1.0",
+  "description": "workflow orchestration in the architecture of worlds and workers.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "worlds-engine": "./bin/worlds-engine.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/harness.d.ts",
+      "import": "./dist/testing/harness.mjs",
+      "require": "./dist/testing/harness.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node --test test/**/*.test.ts",
+    "test:watch": "node --test --watch test/**/*.test.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "workflow",
+    "orchestration",
+    "saga",
+    "job-queue",
+    "temporal",
+    "concurrency",
+    "workers",
+    "async",
+    "retry",
+    "backoff",
+    "workflow-dev",
+    "durable-execution",
+    "event-sourcing",
+    "compensation",
+    "scheduling",
+    "hooks",
+    "webhooks",
+    "streaming"
+  ],
+  "author": "floris@xylex.group",
+  "publisher": "XYLEX Group",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xylex-group/worlds-engine"
+  },
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "chalk": "^4.1.2",
+    "cron-parser": "^4.9.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.25",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "tsup": "^8.5.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
