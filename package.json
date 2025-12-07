@@ -32,7 +32,19 @@
     "test": "node --test test/**/*.test.ts",
     "test:watch": "node --test --watch test/**/*.test.ts",
     "prepublishOnly": "npm run build",
-    "publish:token": "node scripts/publish.js"
+    "publish:token": "node scripts/publish.js",
+    "example:basic-workflow": "bun --cwd examples/basic-workflow run start",
+    "example:express-api": "bun --cwd examples/express-api run start",
+    "example:order-saga": "bun --cwd examples/order-saga run start",
+    "example:recurring-invoice": "bun --cwd examples/recurring-invoice run start",
+    "example:retry-patterns": "bun --cwd examples/retry-patterns run start",
+    "example:workflow-dev-complete": "bun --cwd examples/workflow-dev-complete run start",
+    "example:workflow-dev-style": "bun --cwd examples/workflow-dev-style run start",
+    "example:email-resend": "bun --cwd examples/email-resend run start",
+    "example:api-call": "bun --cwd examples/api-call run start",
+    "example:supabase-fetch": "bun --cwd examples/supabase-fetch run start",
+    "example:etl-workflow": "bun --cwd examples/etl-workflow run start",
+    "example:postgres-connection": "bun --cwd examples/postgres-connection run start"
   },
   "keywords": [
     "workflow",
