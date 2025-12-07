@@ -6,7 +6,7 @@
  * retry logic error handling and durable execution
  */
 
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 // activities similar to workflow.dev functions
 

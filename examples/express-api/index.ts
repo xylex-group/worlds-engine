@@ -5,7 +5,7 @@
  */
 
 import express from 'express'
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 // activity that simulates image processing
 const processImage = activity('process-image', async (ctx, { url }) => {

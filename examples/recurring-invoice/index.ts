@@ -5,7 +5,7 @@
  * retry logic and failure handling for invoice generation and sending
  */
 
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 // simulate invoice data structure
 interface Invoice {

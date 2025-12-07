@@ -13,7 +13,7 @@
  * - metadata access
  */
 
-import { World, workflow, activity, LocalBackend, start, resumeHook, getRun, initializeRuntime } from '../../src/index.js'
+import { World, workflow, activity, LocalBackend, start, resumeHook, getRun, initializeRuntime } from '../../src/index'
 import {
   getWorkflowMetadata,
   getStepMetadata,

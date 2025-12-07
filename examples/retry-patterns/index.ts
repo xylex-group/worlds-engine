@@ -5,7 +5,7 @@
  * without needing full workflow orchestration.
  */
 
-import { withRetry, retryable, retryPatterns, shouldRetryError } from 'worlds-engine'
+import { withRetry, retryable, retryPatterns, shouldRetryError } from '../../src/index'
 
 // simulate an unreliable api
 let apiCallCount = 0

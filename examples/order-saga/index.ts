@@ -4,7 +4,7 @@
  * demonstrates the saga pattern for e-commerce order processing with compensation logic.
  */
 
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 // activities for order processing
 const chargeCard = activity('charge-card', async (ctx, { amount, cardToken }) => {

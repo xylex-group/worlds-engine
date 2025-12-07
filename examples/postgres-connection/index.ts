@@ -1,4 +1,4 @@
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 import { Pool } from 'pg'
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/dbname'
@@ -31,95 +31,57 @@ const queryPostgres = activity('query-postgres', async (ctx, { sql, params = [] 
   timeout: '30s'
 })
 
-const createTable = activity('create-table', async (ctx, { tableName, schema }) => {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS ${tableName} (
-      ${schema}
-    )
-  `
-  
-  return await ctx.run(queryPostgres, { sql })
-})
-
-const insertRecord = activity('insert-record', async (ctx, { table, data }) => {
-  const columns = Object.keys(data).join(', ')
-  const values = Object.values(data)
-  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
-  
-  const sql = `INSERT INTO ${table} (${columns}) VALUES (${placeholders}) RETURNING *`
-  
-  return await ctx.run(queryPostgres, { sql, params: values })
-})
-
-const selectRecords = activity('select-records', async (ctx, { table, where = {}, limit = 100 }) => {
-  let sql = `SELECT * FROM ${table}`
-  const params: any[] = []
-  
-  if (Object.keys(where).length > 0) {
-    const conditions = Object.entries(where).map(([key, value], index) => {
-      params.push(value)
-      return `${key} = $${params.length}`
-    })
-    sql += ` WHERE ${conditions.join(' AND ')}`
-  }
-  
-  sql += ` LIMIT $${params.length + 1}`
-  params.push(limit)
-  
-  return await ctx.run(queryPostgres, { sql, params })
-})
-
-const updateRecord = activity('update-record', async (ctx, { table, id, updates }) => {
-  const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ')
-  const values = Object.values(updates)
-  values.push(id)
-  
-  const sql = `UPDATE ${table} SET ${setClause} WHERE id = $${values.length} RETURNING *`
-  
-  return await ctx.run(queryPostgres, { sql, params: values })
-})
-
 const postgresWorkflow = workflow('postgres-workflow', async (ctx, { action, tableName, data }) => {
   console.log(`starting postgres workflow: ${action}`)
   
   if (action === 'setup') {
-    await ctx.run(createTable, {
-      tableName,
-      schema: `
+    const createSql = `
+      CREATE TABLE IF NOT EXISTS ${tableName} (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      `
-    })
+      )
+    `
+    await ctx.run(queryPostgres, { sql: createSql })
     
-    const inserted = await ctx.run(insertRecord, {
-      table: tableName,
-      data: {
-        name: data.name,
-        email: data.email
-      }
-    })
+    const columns = Object.keys(data).join(', ')
+    const values = Object.values(data)
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
+    const insertSql = `INSERT INTO ${tableName} (${columns}) VALUES (${placeholders}) RETURNING *`
+    
+    const inserted = await ctx.run(queryPostgres, { sql: insertSql, params: values })
     
     return { action: 'setup', table: tableName, record: inserted.rows[0] }
   }
   
   if (action === 'query') {
-    const results = await ctx.run(selectRecords, {
-      table: tableName,
-      where: data.where || {},
-      limit: data.limit || 10
-    })
+    let sql = `SELECT * FROM ${tableName}`
+    const params: any[] = []
+    
+    if (data.where && Object.keys(data.where).length > 0) {
+      const conditions = Object.entries(data.where).map(([key, value]) => {
+        params.push(value)
+        return `${key} = $${params.length}`
+      })
+      sql += ` WHERE ${conditions.join(' AND ')}`
+    }
+    
+    sql += ` LIMIT $${params.length + 1}`
+    params.push(data.limit || 10)
+    
+    const results = await ctx.run(queryPostgres, { sql, params })
     
     return { action: 'query', table: tableName, records: results.rows, count: results.rowCount }
   }
   
   if (action === 'update') {
-    const updated = await ctx.run(updateRecord, {
-      table: tableName,
-      id: data.id,
-      updates: data.updates
-    })
+    const setClause = Object.keys(data.updates).map((key, index) => `${key} = $${index + 1}`).join(', ')
+    const values = Object.values(data.updates)
+    values.push(data.id)
+    const sql = `UPDATE ${tableName} SET ${setClause} WHERE id = $${values.length} RETURNING *`
+    
+    const updated = await ctx.run(queryPostgres, { sql, params: values })
     
     return { action: 'update', table: tableName, record: updated.rows[0] }
   }
@@ -135,11 +97,7 @@ const world = new World({
 
 world.register(
   postgresWorkflow,
-  queryPostgres,
-  createTable,
-  insertRecord,
-  selectRecords,
-  updateRecord
+  queryPostgres
 )
 
 await world.start()

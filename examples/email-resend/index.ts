@@ -1,4 +1,4 @@
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_demo_key')
@@ -33,31 +33,23 @@ const sendEmail = activity('send-email', async (ctx, { to, subject, html }) => {
   retry: { maxAttempts: 3, backoff: 'exponential' }
 })
 
-const sendWelcomeEmail = activity('send-welcome-email', async (ctx, { email, name }) => {
-  return await ctx.run(sendEmail, {
+const emailWorkflow = workflow('email-workflow', async (ctx, { email, name, notifications }) => {
+  console.log(`starting email workflow for ${email}`)
+  
+  await ctx.run(sendEmail, {
     to: email,
     subject: `welcome ${name}!`,
     html: `<h1>welcome ${name}!</h1><p>thanks for joining us.</p>`
   })
-})
-
-const sendNotificationEmail = activity('send-notification-email', async (ctx, { email, message }) => {
-  return await ctx.run(sendEmail, {
-    to: email,
-    subject: 'notification',
-    html: `<p>${message}</p>`
-  })
-})
-
-const emailWorkflow = workflow('email-workflow', async (ctx, { email, name, notifications }) => {
-  console.log(`starting email workflow for ${email}`)
-  
-  await ctx.run(sendWelcomeEmail, { email, name })
   
   if (notifications && notifications.length > 0) {
     await Promise.all(
       notifications.map(msg => 
-        ctx.run(sendNotificationEmail, { email, message: msg })
+        ctx.run(sendEmail, { 
+          to: email, 
+          subject: 'notification',
+          html: `<p>${msg}</p>`
+        })
       )
     )
   }
@@ -71,7 +63,7 @@ const world = new World({
   persistence: 'memory'
 })
 
-world.register(emailWorkflow, sendEmail, sendWelcomeEmail, sendNotificationEmail)
+world.register(emailWorkflow, sendEmail)
 
 await world.start()
 

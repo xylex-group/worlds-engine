@@ -1,4 +1,4 @@
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 const callApi = activity('call-api', async (ctx, { url, method = 'GET', body, headers = {} }) => {
   ctx.heartbeat(`calling ${method} ${url}`)
@@ -30,46 +30,27 @@ const callApi = activity('call-api', async (ctx, { url, method = 'GET', body, he
   timeout: '30s'
 })
 
-const fetchUserData = activity('fetch-user-data', async (ctx, { userId }) => {
-  return await ctx.run(callApi, {
-    url: `https://jsonplaceholder.typicode.com/users/${userId}`,
-    method: 'GET'
-  })
-})
-
-const createPost = activity('create-post', async (ctx, { userId, title, body }) => {
-  return await ctx.run(callApi, {
-    url: 'https://jsonplaceholder.typicode.com/posts',
-    method: 'POST',
-    body: { userId, title, body }
-  })
-})
-
-const updateUser = activity('update-user', async (ctx, { userId, data }) => {
-  return await ctx.run(callApi, {
-    url: `https://jsonplaceholder.typicode.com/users/${userId}`,
-    method: 'PATCH',
-    body: data
-  })
-})
-
 const apiWorkflow = workflow('api-workflow', async (ctx, { userId, postTitle, postBody, userUpdates }) => {
   console.log(`starting api workflow for user ${userId}`)
   
-  const user = await ctx.run(fetchUserData, { userId })
+  const user = await ctx.run(callApi, {
+    url: `https://jsonplaceholder.typicode.com/users/${userId}`,
+    method: 'GET'
+  })
   console.log(`fetched user: ${user.data.name}`)
   
-  const post = await ctx.run(createPost, {
-    userId,
-    title: postTitle,
-    body: postBody
+  const post = await ctx.run(callApi, {
+    url: 'https://jsonplaceholder.typicode.com/posts',
+    method: 'POST',
+    body: { userId, title: postTitle, body: postBody }
   })
   console.log(`created post: ${post.data.id}`)
   
   if (userUpdates) {
-    const updated = await ctx.run(updateUser, {
-      userId,
-      data: userUpdates
+    const updated = await ctx.run(callApi, {
+      url: `https://jsonplaceholder.typicode.com/users/${userId}`,
+      method: 'PATCH',
+      body: userUpdates
     })
     console.log(`updated user: ${updated.data.name}`)
   }
@@ -88,7 +69,7 @@ const world = new World({
   persistence: 'memory'
 })
 
-world.register(apiWorkflow, callApi, fetchUserData, createPost, updateUser)
+world.register(apiWorkflow, callApi)
 
 await world.start()
 

@@ -1,4 +1,4 @@
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://demo.supabase.co'
@@ -64,33 +64,25 @@ const updateInSupabase = activity('update-supabase', async (ctx, { table, id, up
   retry: { maxAttempts: 3, backoff: 'exponential' }
 })
 
-const fetchUsers = activity('fetch-users', async (ctx, { filters }) => {
-  return await ctx.run(fetchFromSupabase, {
-    table: 'users',
-    filters,
-    select: 'id,email,name'
-  })
-})
-
-const createUser = activity('create-user', async (ctx, { email, name }) => {
-  return await ctx.run(insertIntoSupabase, {
-    table: 'users',
-    data: { email, name }
-  })
-})
-
 const supabaseWorkflow = workflow('supabase-workflow', async (ctx, { action, userId, userData }) => {
   console.log(`starting supabase workflow: ${action}`)
   
   if (action === 'fetch') {
-    const users = await ctx.run(fetchUsers, { filters: userId ? { id: userId } : {} })
+    const users = await ctx.run(fetchFromSupabase, {
+      table: 'users',
+      filters: userId ? { id: userId } : {},
+      select: 'id,email,name'
+    })
     return { action: 'fetch', users: users.data, count: users.count }
   }
   
   if (action === 'create') {
-    const newUser = await ctx.run(createUser, {
-      email: userData.email,
-      name: userData.name
+    const newUser = await ctx.run(insertIntoSupabase, {
+      table: 'users',
+      data: {
+        email: userData.email,
+        name: userData.name
+      }
     })
     
     if (newUser.data && newUser.data[0]) {
@@ -119,9 +111,7 @@ world.register(
   supabaseWorkflow,
   fetchFromSupabase,
   insertIntoSupabase,
-  updateInSupabase,
-  fetchUsers,
-  createUser
+  updateInSupabase
 )
 
 await world.start()

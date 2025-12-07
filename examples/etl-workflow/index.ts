@@ -1,4 +1,4 @@
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 interface SourceRecord {
   id: string

@@ -5,7 +5,7 @@
  * keeps track of when things should run and triggers them at the right time.
  */
 
-import { parseExpression } from 'cron-parser'
+import cronParser from 'cron-parser'
 import { v4 as uuid } from 'uuid'
 import type { ScheduleConfig, Store, Workflow } from '../types/index.js'
 
@@ -59,7 +59,7 @@ export class Scheduler {
     cronExpression: string
   ): Promise<void> {
     // validate cron expression
-    const parsed = parseExpression(cronExpression)
+    const parsed = cronParser.parseExpression(cronExpression)
     const nextExecution = parsed.next().getTime()
 
     const schedule: ScheduleConfig = {
@@ -124,7 +124,7 @@ export class Scheduler {
     
     // recalculate next execution if its a cron schedule
     if (schedule.cronExpression) {
-      const parsed = parseExpression(schedule.cronExpression)
+      const parsed = cronParser.parseExpression(schedule.cronExpression)
       schedule.nextExecution = parsed.next().getTime()
     }
 
@@ -170,7 +170,7 @@ export class Scheduler {
       // calculate next execution
       if (schedule.cronExpression) {
         // recurring schedule
-        const parsed = parseExpression(schedule.cronExpression, {
+        const parsed = cronParser.parseExpression(schedule.cronExpression, {
           currentDate: new Date(schedule.lastExecution),
         })
         schedule.nextExecution = parsed.next().getTime()
@@ -185,7 +185,7 @@ export class Scheduler {
       console.error(`failed to execute schedule ${schedule.id}:`, err)
       // still update next execution so we dont get stuck
       if (schedule.cronExpression) {
-        const parsed = parseExpression(schedule.cronExpression)
+        const parsed = cronParser.parseExpression(schedule.cronExpression)
         schedule.nextExecution = parsed.next().getTime()
         await this.store.saveSchedule(schedule)
       }

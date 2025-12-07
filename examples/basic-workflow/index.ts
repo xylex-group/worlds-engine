@@ -4,7 +4,7 @@
  * the simplest possible workflow. good starting point for learning worlds-engine.
  */
 
-import { World, workflow, activity } from 'worlds-engine'
+import { World, workflow, activity } from '../../src/index'
 
 // simple activity that just logs and returns
 const greet = activity('greet', async (ctx, { name }) => {
